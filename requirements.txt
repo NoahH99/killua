@@ -1,0 +1,14 @@
+# AWS SDK for EC2 management
+boto3>=1.34.0
+
+# Discord bot library
+discord.py>=2.3.0
+
+# HTTP requests
+requests>=2.31.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Minecraft RCON client
+mcrcon>=0.7.0

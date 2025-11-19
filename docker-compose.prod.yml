@@ -1,0 +1,19 @@
+services:
+  minecraft-bot:
+    image: noahh99/killua:latest
+    container_name: minecraft-discord-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+
+    volumes:
+      - ~/.aws:/home/botuser/.aws:ro
+  
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M

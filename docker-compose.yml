@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  minecraft-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: minecraft-discord-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    # Alternative: Pass environment variables directly
+    # environment:
+    #   - DISCORD_TOKEN=${DISCORD_TOKEN}
+    #   - EC2_INSTANCE_ID=${EC2_INSTANCE_ID}
+    #   - RCON_PASSWORD=${RCON_PASSWORD}
+    #   - ADMIN_DISCORD_ID=${ADMIN_DISCORD_ID}
+    #   - AWS_REGION=${AWS_REGION}
+    #   - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+    #   - CF_ZONE_ID=${CF_ZONE_ID}
+    #   - CF_DNS_RECORD_NAME=${CF_DNS_RECORD_NAME}
+    #   - IDLE_MINUTES_BEFORE_STOP=${IDLE_MINUTES_BEFORE_STOP}
+    #   - MC_CW_LOG_GROUP=${MC_CW_LOG_GROUP}
+    #   - RCON_PORT=${RCON_PORT}
+
+    # If running on AWS with IAM roles, mount AWS credentials
+    # volumes:
+    #   - ~/.aws:/home/botuser/.aws:ro
+
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
