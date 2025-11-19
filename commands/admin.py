@@ -220,7 +220,7 @@ def create_admin_commands(
     )
     @app_commands.describe(
         direction="Whether to show the start (head) or end (tail) of the log",
-        lines="Number of log lines to show (1–500)",
+        lines="Number of log lines to show (1–250, or 1–5000 with grep)",
         grep="Optional pattern to filter log lines (case-insensitive)",
         private="Send the response only to you",
         debug="Show additional technical details (admin only)",
@@ -250,8 +250,10 @@ def create_admin_commands(
         debug_enabled = debug and is_admin(interaction)
         debug_lines: List[str] = []
 
-        lines = max(1, min(lines, 500))
-        debug_lines.append(f"Requested direction={direction.value}, lines={lines}, grep={grep}")
+        # Higher limit when using grep to search through more lines
+        max_lines = 5000 if grep else 250
+        lines = max(1, min(lines, max_lines))
+        debug_lines.append(f"Requested direction={direction.value}, lines={lines}, grep={grep}, max_lines={max_lines}")
 
         log_lines = aws_service.get_log_lines(direction.value, lines)
         if log_lines is None:
