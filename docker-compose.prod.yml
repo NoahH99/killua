@@ -3,6 +3,7 @@ services:
     image: noahh99/killua:latest
     container_name: minecraft-discord-bot
     restart: unless-stopped
+    pull_policy: always
     env_file:
       - .env
 
