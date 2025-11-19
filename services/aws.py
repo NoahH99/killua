@@ -156,16 +156,30 @@ class AWSService:
                 return None
 
             stream_name = streams[0]["logStreamName"]
-            start_from_head = direction == "head"
 
-            events = self.logs_client.get_log_events(
-                logGroupName=Config.MC_CW_LOG_GROUP,
-                logStreamName=stream_name,
-                limit=lines,
-                startFromHead=start_from_head,
-            )["events"]
+            if direction == "head":
+                # For head, start from the beginning
+                events = self.logs_client.get_log_events(
+                    logGroupName=Config.MC_CW_LOG_GROUP,
+                    logStreamName=stream_name,
+                    limit=lines,
+                    startFromHead=True,
+                )["events"]
+                messages = [e["message"] for e in events]
+            else:
+                # For tail, fetch more events than needed and slice from the end
+                # CloudWatch's limit doesn't work reliably with startFromHead=False
+                fetch_limit = max(lines * 2, 100)  # Fetch extra to ensure we get enough
+                events = self.logs_client.get_log_events(
+                    logGroupName=Config.MC_CW_LOG_GROUP,
+                    logStreamName=stream_name,
+                    limit=fetch_limit,
+                    startFromHead=False,
+                )["events"]
+                # Take the last N events (most recent) and reverse to chronological order
+                messages = [e["message"] for e in events[-lines:]]
 
-            return [e["message"] for e in events]
+            return messages
         except Exception as e:
             logger.warning(f"Failed to fetch CloudWatch log lines: {e}")
             return None
