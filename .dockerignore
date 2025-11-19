@@ -30,6 +30,8 @@ ENV/
 Dockerfile
 .dockerignore
 docker-compose.yml
+docker-compose.prod.yml
+docker-build-push.sh
 
 # Documentation
 README.md
