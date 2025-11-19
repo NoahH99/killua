@@ -221,6 +221,7 @@ def create_admin_commands(
     @app_commands.describe(
         direction="Whether to show the start (head) or end (tail) of the log",
         lines="Number of log lines to show (1–500)",
+        grep="Optional pattern to filter log lines (case-insensitive)",
         private="Send the response only to you",
         debug="Show additional technical details (admin only)",
     )
@@ -232,6 +233,7 @@ def create_admin_commands(
         interaction: discord.Interaction,
         direction: app_commands.Choice[str],
         lines: int = 50,
+        grep: str = None,
         private: bool = False,
         debug: bool = False,
     ):
@@ -249,7 +251,7 @@ def create_admin_commands(
         debug_lines: List[str] = []
 
         lines = max(1, min(lines, 500))
-        debug_lines.append(f"Requested direction={direction.value}, lines={lines}")
+        debug_lines.append(f"Requested direction={direction.value}, lines={lines}, grep={grep}")
 
         log_lines = aws_service.get_log_lines(direction.value, lines)
         if log_lines is None:
@@ -265,22 +267,37 @@ def create_admin_commands(
                 await send_debug_embed(interaction, "logs", debug_lines)
             return
 
+        # Apply grep filter if provided
+        if grep:
+            original_count = len(log_lines)
+            log_lines = [line for line in log_lines if grep.lower() in line.lower()]
+            debug_lines.append(f"Grep filter applied: {original_count} -> {len(log_lines)} lines")
+
         if not log_lines:
-            debug_lines.append("get_log_lines() returned empty list.")
-            embed = discord.Embed(
-                title="Logs",
-                description="No log events found in the latest stream.",
-                color=PastelColors.YELLOW,
-            )
+            if grep:
+                debug_lines.append(f"No lines matched grep pattern: {grep}")
+                embed = discord.Embed(
+                    title="Logs",
+                    description=f"No log lines matched the pattern: `{grep}`",
+                    color=PastelColors.YELLOW,
+                )
+            else:
+                debug_lines.append("get_log_lines() returned empty list.")
+                embed = discord.Embed(
+                    title="Logs",
+                    description="No log events found in the latest stream.",
+                    color=PastelColors.YELLOW,
+                )
             embed.set_footer(text=f"Requested by {interaction.user}")
             await interaction.followup.send(embed=embed, ephemeral=ephemeral)
             if debug_enabled:
                 await send_debug_embed(interaction, "logs", debug_lines)
             return
 
+        grep_info = f" (filtered by: `{grep}`)" if grep else ""
         embed = discord.Embed(
             title="Logs",
-            description=f"{direction.name.capitalize()} of {lines} lines from the latest log stream.",
+            description=f"{direction.name.capitalize()} of {lines} lines from the latest log stream{grep_info}.",
             color=PastelColors.BLUE,
         )
         embed.set_footer(text=f"Requested by {interaction.user}")
