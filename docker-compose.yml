@@ -24,8 +24,8 @@ services:
     #   - RCON_PORT=${RCON_PORT}
 
     # If running on AWS with IAM roles, mount AWS credentials
-    # volumes:
-    #   - ~/.aws:/home/botuser/.aws:ro
+    volumes:
+      - ~/.aws:/home/botuser/.aws:ro
 
     # Resource limits (optional)
     deploy:
